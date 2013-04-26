@@ -1,0 +1,83 @@
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/kinvey/!svn/ver/6475/java-library/trunk/samples/CityWatch-Android/res/layout
+END
+activity_main.xml
+K 25
+svn:wc:ra_dav:version-url
+V 99
+/svn/kinvey/!svn/ver/6406/java-library/trunk/samples/CityWatch-Android/res/layout/activity_main.xml
+END
+fragment_map.xml
+K 25
+svn:wc:ra_dav:version-url
+V 98
+/svn/kinvey/!svn/ver/6406/java-library/trunk/samples/CityWatch-Android/res/layout/fragment_map.xml
+END
+activity_register.xml
+K 25
+svn:wc:ra_dav:version-url
+V 103
+/svn/kinvey/!svn/ver/6406/java-library/trunk/samples/CityWatch-Android/res/layout/activity_register.xml
+END
+facebook_login.xml
+K 25
+svn:wc:ra_dav:version-url
+V 100
+/svn/kinvey/!svn/ver/6406/java-library/trunk/samples/CityWatch-Android/res/layout/facebook_login.xml
+END
+fragment_view_details.xml
+K 25
+svn:wc:ra_dav:version-url
+V 107
+/svn/kinvey/!svn/ver/6475/java-library/trunk/samples/CityWatch-Android/res/layout/fragment_view_details.xml
+END
+list_row.xml
+K 25
+svn:wc:ra_dav:version-url
+V 94
+/svn/kinvey/!svn/ver/6475/java-library/trunk/samples/CityWatch-Android/res/layout/list_row.xml
+END
+activity_login.xml
+K 25
+svn:wc:ra_dav:version-url
+V 100
+/svn/kinvey/!svn/ver/6406/java-library/trunk/samples/CityWatch-Android/res/layout/activity_login.xml
+END
+main.xml
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/svn/kinvey/!svn/ver/6390/java-library/trunk/samples/CityWatch-Android/res/layout/main.xml
+END
+activity_twitter_login.xml
+K 25
+svn:wc:ra_dav:version-url
+V 108
+/svn/kinvey/!svn/ver/6406/java-library/trunk/samples/CityWatch-Android/res/layout/activity_twitter_login.xml
+END
+activity_city_watch.xml
+K 25
+svn:wc:ra_dav:version-url
+V 105
+/svn/kinvey/!svn/ver/6406/java-library/trunk/samples/CityWatch-Android/res/layout/activity_city_watch.xml
+END
+fragment_login.xml
+K 25
+svn:wc:ra_dav:version-url
+V 100
+/svn/kinvey/!svn/ver/6406/java-library/trunk/samples/CityWatch-Android/res/layout/fragment_login.xml
+END
+fragment_edit_details.xml
+K 25
+svn:wc:ra_dav:version-url
+V 107
+/svn/kinvey/!svn/ver/6475/java-library/trunk/samples/CityWatch-Android/res/layout/fragment_edit_details.xml
+END
+fragment_list.xml
+K 25
+svn:wc:ra_dav:version-url
+V 99
+/svn/kinvey/!svn/ver/6475/java-library/trunk/samples/CityWatch-Android/res/layout/fragment_list.xml
+END

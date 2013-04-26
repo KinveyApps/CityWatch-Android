@@ -1,0 +1,71 @@
+K 25
+svn:wc:ra_dav:version-url
+V 103
+/svn/kinvey/!svn/ver/6475/java-library/trunk/samples/CityWatch-Android/src/com/kinvey/samples/citywatch
+END
+CityWatch.java
+K 25
+svn:wc:ra_dav:version-url
+V 118
+/svn/kinvey/!svn/ver/6475/java-library/trunk/samples/CityWatch-Android/src/com/kinvey/samples/citywatch/CityWatch.java
+END
+CityWatchEditDetailsFragment.java
+K 25
+svn:wc:ra_dav:version-url
+V 137
+/svn/kinvey/!svn/ver/6475/java-library/trunk/samples/CityWatch-Android/src/com/kinvey/samples/citywatch/CityWatchEditDetailsFragment.java
+END
+CityWatchListFragment.java
+K 25
+svn:wc:ra_dav:version-url
+V 130
+/svn/kinvey/!svn/ver/6475/java-library/trunk/samples/CityWatch-Android/src/com/kinvey/samples/citywatch/CityWatchListFragment.java
+END
+CityWatchMapFragment.java
+K 25
+svn:wc:ra_dav:version-url
+V 129
+/svn/kinvey/!svn/ver/6475/java-library/trunk/samples/CityWatch-Android/src/com/kinvey/samples/citywatch/CityWatchMapFragment.java
+END
+CityWatchDetailsActivity.java
+K 25
+svn:wc:ra_dav:version-url
+V 133
+/svn/kinvey/!svn/ver/6434/java-library/trunk/samples/CityWatch-Android/src/com/kinvey/samples/citywatch/CityWatchDetailsActivity.java
+END
+CityWatchApplication.java
+K 25
+svn:wc:ra_dav:version-url
+V 129
+/svn/kinvey/!svn/ver/6434/java-library/trunk/samples/CityWatch-Android/src/com/kinvey/samples/citywatch/CityWatchApplication.java
+END
+CityWatchViewDetailsFragment.java
+K 25
+svn:wc:ra_dav:version-url
+V 137
+/svn/kinvey/!svn/ver/6475/java-library/trunk/samples/CityWatch-Android/src/com/kinvey/samples/citywatch/CityWatchViewDetailsFragment.java
+END
+CityWatchLoginActivity.java
+K 25
+svn:wc:ra_dav:version-url
+V 131
+/svn/kinvey/!svn/ver/6434/java-library/trunk/samples/CityWatch-Android/src/com/kinvey/samples/citywatch/CityWatchLoginActivity.java
+END
+FacebookEntity.java
+K 25
+svn:wc:ra_dav:version-url
+V 123
+/svn/kinvey/!svn/ver/6434/java-library/trunk/samples/CityWatch-Android/src/com/kinvey/samples/citywatch/FacebookEntity.java
+END
+CityWatchData.java
+K 25
+svn:wc:ra_dav:version-url
+V 122
+/svn/kinvey/!svn/ver/6417/java-library/trunk/samples/CityWatch-Android/src/com/kinvey/samples/citywatch/CityWatchData.java
+END
+CityWatchEntity.java
+K 25
+svn:wc:ra_dav:version-url
+V 124
+/svn/kinvey/!svn/ver/6434/java-library/trunk/samples/CityWatch-Android/src/com/kinvey/samples/citywatch/CityWatchEntity.java
+END

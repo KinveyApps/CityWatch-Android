@@ -1,17 +1,39 @@
+/*
+ * Copyright (c) 2013 Kinvey Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
 package com.kinvey.samples.citywatch;
 
+/**
+ * @author mjsalinger
+ * @since 2.0
+ */
+
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.Typeface;
 import android.location.Location;
 import android.os.Bundle;
-import android.text.InputFilter.LengthFilter;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -21,24 +43,26 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.actionbarsherlock.app.ActionBar;
 import com.actionbarsherlock.app.SherlockFragment;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuInflater;
 import com.actionbarsherlock.view.MenuItem;
-import com.facebook.Request;
-import com.facebook.Response;
-import com.facebook.Session;
-import com.google.android.gms.common.GooglePlayServicesUtil;
+
+import com.kinvey.android.Client;
+import com.kinvey.java.core.KinveyClientCallback;
+import com.kinvey.java.core.MediaHttpUploader;
+import com.kinvey.java.core.UploaderProgressListener;
 import com.kinvey.samples.citywatch.CityWatchData.Category;
 import com.kinvey.samples.citywatch.CityWatchData.Risk;
 import com.kinvey.samples.citywatch.CityWatchData.Severity;
-import com.kinvey.util.ScalarCallback;
 
 public class CityWatchEditDetailsFragment extends SherlockFragment {
 
-	private static final String TAG = CityWatchEditDetailsFragment.class.getSimpleName();
+	private static final String TAG = CityWatchApplication.TAG;
 
 	public static final int CAMERA_REQUEST = 1;
 
@@ -49,10 +73,15 @@ public class CityWatchEditDetailsFragment extends SherlockFragment {
 	private EditText mLocation;
 	private Spinner mRisk;
 	private Spinner mSeverity;
+    private Client kinveyClient;
 
 	private Bitmap photo;
 
+    private CityWatchEntity ent;
+
 	private AlertDialog confirmOG = null;
+
+    private static Typeface robotoThin;
 
 	public static CityWatchEditDetailsFragment newInstance() {
 		return new CityWatchEditDetailsFragment();
@@ -75,13 +104,17 @@ public class CityWatchEditDetailsFragment extends SherlockFragment {
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup group, Bundle saved) {
 		View v = inflater.inflate(R.layout.fragment_edit_details, group, false);
+        kinveyClient = ((CityWatchApplication) getSherlockActivity().getApplication()).getClient();
 		bindViews(v);
 		populateSpinners();
 		setListeners();
+        getSherlockActivity().getSupportActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
 		return v;
 	}
 
 	private void bindViews(View v) {
+        robotoThin = Typeface.createFromAsset(getSherlockActivity().getAssets(), "Roboto-Thin.ttf");
+        ent = ((CityWatch)getSherlockActivity()).getCurEntity();
 		mImage = (ImageView) v.findViewById(R.id.edit_details_image);
 		mName = (EditText) v.findViewById(R.id.edit_details_name);
 		mCategory = (Spinner) v.findViewById(R.id.edit_details_category);
@@ -89,6 +122,8 @@ public class CityWatchEditDetailsFragment extends SherlockFragment {
 		mLocation = (EditText) v.findViewById(R.id.edit_details_location);
 		mRisk = (Spinner) v.findViewById(R.id.edit_details_risk);
 		mSeverity = (Spinner) v.findViewById(R.id.edit_details_severity);
+        TextView header = (TextView) v.findViewById(R.id.header_edit_details);
+        header.setTypeface(robotoThin);
 	}
 
 	private void populateSpinners() {
@@ -143,8 +178,8 @@ public class CityWatchEditDetailsFragment extends SherlockFragment {
 
 	@Override
 	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-
 		inflater.inflate(R.menu.fragment_edit, menu);
+
 
 	}
 
@@ -164,66 +199,82 @@ public class CityWatchEditDetailsFragment extends SherlockFragment {
 	}
 
 	private void saveToKinvey() {
-		CityWatchEntity ent = ((CityWatchDetailsActivity) getSherlockActivity()).curEntity;
-		ent.setTitle(mName.getText().toString());
-		ent.setCategory(mCategory.getSelectedItem().toString());
-		ent.setSeverity(mSeverity.getSelectedItem().toString());
-		ent.setRisk(mRisk.getSelectedItem().toString());
-		ent.setDescription(mDescription.getText().toString());
-		ent.setAddress(mLocation.getText().toString());
+        if (validateFields()) {
 
-		// TODO get Repeat working, so users can "RECONFIRM" an event
-		// ASSUMING lat/long have been set by location manager
-		ent.setRepeat(1);
-		Location l = new Location(TAG);
-		l.setLatitude(ent.getLatitude());
-		l.setLongitude(ent.getLongitude());
-		ent.setCoords(l);
+            ent.setTitle(mName.getText().toString());
+            ent.setCategory(mCategory.getSelectedItem().toString());
+            ent.setSeverity(mSeverity.getSelectedItem().toString());
+            ent.setRisk(mRisk.getSelectedItem().toString());
+            ent.setDescription(mDescription.getText().toString());
+            ent.setAddress(mLocation.getText().toString());
 
-		// upload the entity
-		KinveyService.getInstance(getSherlockActivity()).addEntity(ent, new ScalarCallback<CityWatchEntity>() {
+            // TODO get Repeat working, so users can "RECONFIRM" an event
+            // ASSUMING lat/long have been set by location manager
+            ent.setRepeat(1);
+            Location l = new Location(TAG);
+            l.setLatitude(ent.getLatitude());
+            l.setLongitude(ent.getLongitude());
+            ent.setCoords(l);
+            saveImage();
+        }   else {
+            Toast.makeText(getSherlockActivity(), "Can't save form.  All data must be filled in and a photo taken.", Toast.LENGTH_LONG).show();
+        }
+    }
 
-			@Override
-			public void onSuccess(CityWatchEntity r) {
-				// upload the photo
+    private boolean validateFields() {
+        return (
+                mName.getText() != null
+                        && mDescription.getText() != null
+                        && mLocation.getText() != null
+                        && photo != null);
+    }
 
-				Log.i(TAG, "appdata success, bout to upload image.");
-				saveImage(r.getObjectId());
+    private void saveEntity() {
+        kinveyClient.appData("CityWatch", CityWatchEntity.class).save(ent, new KinveyClientCallback<CityWatchEntity>() {
+            @Override
+            public void onSuccess(CityWatchEntity result) {
+                Log.i(TAG, "appdata success, ready to publish to OpenGraph.");
+                ent = result;
+                getOGDialog();
+            }
 
-			}
-
-			@Override
-			public void onFailure(Throwable t) {
-				String msg = String.format("Save failed%nerror: %s", t.getMessage());
-				Log.e(TAG, msg);
-				Toast.makeText(CityWatchEditDetailsFragment.this.getSherlockActivity(), "", Toast.LENGTH_LONG).show();
-
-			}
-
-		});
-
+            @Override
+            public void onFailure(Throwable error) {
+                String msg = String.format("Save failed%nerror: %s", error.getMessage());
+                Log.e(TAG, msg, error);
+                Toast.makeText(CityWatchEditDetailsFragment.this.getSherlockActivity(), msg, Toast.LENGTH_LONG).show();
+            }
+        });
 	}
 
-	private void saveImage(String id) {
+	private void saveImage() {
 
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
 		photo.compress(Bitmap.CompressFormat.PNG, 100, stream);
+        UUID imageUUID = UUID.randomUUID();
+        String filename = "Reports_" + imageUUID + "_IMAGE.png";
+        ent.setImageURL(filename);
+        InputStream inputStream=new ByteArrayInputStream(stream.toByteArray());
+        kinveyClient.file().upload(filename, inputStream, new UploaderProgressListener() {
+            @Override
+            public void progressChanged(MediaHttpUploader uploader) throws IOException {
 
-		String filename = KinveyService.getFilename(id);
-		KinveyService.getInstance(getSherlockActivity()).addPicture(stream.toByteArray(), filename,
-				new ScalarCallback<Void>() {
+            }
 
-					@Override
-					public void onSuccess(Void r) {
-						Log.i(TAG, "image saved successfully");
+            @Override
+            public void onSuccess(Void result) {
+                Log.i(TAG, "image saved successfully");
+                saveEntity();
+            }
 
-						getOGDialog();
-
-					}
-				});
-
+            @Override
+            public void onFailure(Throwable error) {
+                Log.e(TAG, "Image save unsuccessful. ", error);
+            }
+        });
 	}
 
+    @Override
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
 		Log.i(TAG, "activity result");
 		if (requestCode == CAMERA_REQUEST && resultCode == getSherlockActivity().RESULT_OK) {
@@ -243,13 +294,13 @@ public class CityWatchEditDetailsFragment extends SherlockFragment {
 			confirmOG = new AlertDialog.Builder(getSherlockActivity()).create();
 			confirmOG.setTitle(getResources().getString(R.string.menu_legal));
 			confirmOG
-					.setMessage("Do you want to publish this event to Facebook Open Graph?\n You have to be logged into your facebook account!");
+					.setMessage("Do you want to publish this event to Facebook Open Graph?");
 			confirmOG.setButton(Dialog.BUTTON_NEGATIVE, "Nope", new Dialog.OnClickListener() {
 
 				@Override
 				public void onClick(DialogInterface dialog, int which) {
 					confirmOG.cancel();
-					getSherlockActivity().finish();
+                    ((CityWatch) getSherlockActivity()).returnHome();
 				}
 			});
 			confirmOG.setButton(Dialog.BUTTON_POSITIVE, "Yeah!", new Dialog.OnClickListener() {
@@ -266,20 +317,29 @@ public class CityWatchEditDetailsFragment extends SherlockFragment {
 	}
 
 	private void pushToOpenGraph() {
-		
-		final String message = "Hello Open Graph!";
-		
-		 Request request = Request
-                 .newStatusUpdateRequest(Session.getActiveSession(), message, new Request.Callback() {
-                     @Override
-                     public void onCompleted(Response response) {
-                         Toast.makeText(getSherlockActivity(), message, Toast.LENGTH_LONG).show();
-                         Log.i(TAG, "Facebook says-> "+  response.getError());
-                     }
-                 });
-         request.executeAsync();
-		
-		
+
+        // TODO:  Implement Push To OpenGraph through Kinvey
+        FacebookEntity ogPush = new FacebookEntity();
+        ogPush.setEntityId(ent.getObjectId());
+        ogPush.setObjectType("kinveycitywatch:" + ent.getCategory().toLowerCase());
+        kinveyClient.appData("kinveycitywatch:report", FacebookEntity.class).save(ogPush, new KinveyClientCallback<FacebookEntity>() {
+            @Override
+            public void onSuccess(FacebookEntity result) {
+                Log.i(TAG, "Save to OpenGraph Successful");
+                Toast.makeText(getSherlockActivity(), "Saved to OpenGraph", Toast.LENGTH_LONG).show();
+                ((CityWatch) getSherlockActivity()).returnHome();
+            }
+
+            @Override
+            public void onFailure(Throwable error) {
+                Log.e(TAG, "Failed to post to OpenGraph", error);
+                Toast.makeText(getSherlockActivity(), "Saved to OpenGraph", Toast.LENGTH_LONG).show();
+            }
+        });
+
+
+
 
 	}
 }
+

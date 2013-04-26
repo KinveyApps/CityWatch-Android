@@ -1,29 +1,56 @@
+/*
+ * Copyright (c) 2013 Kinvey Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
 package com.kinvey.samples.citywatch;
 
+import java.text.DecimalFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.List;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
+
+import android.graphics.Typeface;
+import android.location.Location;
 import android.os.Bundle;
+
 import android.util.Log;
+
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
+
 import android.widget.ListView;
 import android.widget.TextView;
 
 import com.actionbarsherlock.app.SherlockFragment;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuInflater;
+import com.actionbarsherlock.view.MenuItem;
+import com.google.api.client.util.ArrayMap;
+
 
 public class CityWatchListFragment extends SherlockFragment implements
 		OnItemClickListener {
 
-	private static final String TAG = CityWatchListFragment.class
-			.getSimpleName();
+	private static final String TAG = CityWatchApplication.TAG;
+    private static Typeface robotoThin;
 
 	private ListView mList;
 	private CityWatchAdapter mAdapter;
@@ -47,12 +74,13 @@ public class CityWatchListFragment extends SherlockFragment implements
 			Bundle saved) {
 		View v = inflater.inflate(R.layout.fragment_list, group, false);
 		bindViews(v);
+        setHasOptionsMenu(true);
 		return v;
 	}
 
 	private void bindViews(View v) {
 
-		List<CityWatchEntity> ents = ((CityWatchActivity) getSherlockActivity()).nearbyEntities;
+		List<com.kinvey.samples.citywatch.CityWatchEntity> ents = ((CityWatch) getSherlockActivity()).getNearbyEntities();
 
 		// ONLY do this if there are any entities, else TODO add a loading
 		// indicator
@@ -60,9 +88,10 @@ public class CityWatchListFragment extends SherlockFragment implements
 		mAdapter = new CityWatchAdapter(getSherlockActivity(), ents,
 				(LayoutInflater) getSherlockActivity().getSystemService(
 						Activity.LAYOUT_INFLATER_SERVICE));
-
-		mList.setAdapter(mAdapter);
+        mList.setAdapter(mAdapter);
 		mList.setOnItemClickListener(this);
+
+        robotoThin = Typeface.createFromAsset(getSherlockActivity().getAssets(), "Roboto-Thin.ttf");
 
 	}
 
@@ -70,19 +99,12 @@ public class CityWatchListFragment extends SherlockFragment implements
 	public void onItemClick(AdapterView<?> parent, View view, int position,
 			long id) {
 
-		Intent details = new Intent(getSherlockActivity(),
-				CityWatchDetailsActivity.class);
-		details.putExtra(CityWatchDetailsActivity.EXTRA_FRAG_TARGET,
-				CityWatchDetailsActivity.FRAG_VIEW);
-		
-		details.putExtra(CityWatchDetailsActivity.EXTRA_ENTITY, mAdapter.getItem(position));
-
-
-		startActivity(details);
+        ((CityWatch) getSherlockActivity()).setCurEntity(mAdapter.getItem(position));
+        ((CityWatch) getSherlockActivity()).showViewDetailsFragment();
 
 	}
 
-	public void notifyNewData(List<CityWatchEntity> n) {
+	public void notifyNewData(List<com.kinvey.samples.citywatch.CityWatchEntity> n) {
 		Log.i(TAG, "notifying new data");
 		mAdapter.clear();
 		mAdapter.addAll(n);
@@ -90,18 +112,35 @@ public class CityWatchListFragment extends SherlockFragment implements
 
 	}
 
-	/**
-	 * 
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.fragment_main, menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.menu_item_new:
+                ((CityWatch) getSherlockActivity()).showEditDetailsFragment();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+
+        }
+    }
+
+    /**
+	 *
 	 * This Adapter is used to maintain data and push individual row views to
 	 * the ListView object, note it constructs the Views used by each row and
 	 * uses the ViewHolder pattern.
-	 * 
+	 *
 	 */
-	private class CityWatchAdapter extends ArrayAdapter<CityWatchEntity> {
+	private class CityWatchAdapter extends ArrayAdapter<com.kinvey.samples.citywatch.CityWatchEntity> {
 
 		private LayoutInflater mInflater;
 
-		public CityWatchAdapter(Context context, List<CityWatchEntity> objects,
+		public CityWatchAdapter(Context context, List<com.kinvey.samples.citywatch.CityWatchEntity> objects,
 				LayoutInflater inf) {
 			// NOTE: I pass an arbitrary textViewResourceID to the super
 			// constructor-- Below I override
@@ -124,12 +163,14 @@ public class CityWatchListFragment extends SherlockFragment implements
 			TextView distance = null;
 			TextView time = null;
 
-			CityWatchEntity rowData = getItem(position);
+			com.kinvey.samples.citywatch.CityWatchEntity rowData = getItem(position);
 
 			if (null == convertView) {
 				convertView = mInflater.inflate(R.layout.list_row, null);
 				holder = new ViewHolder(convertView);
+
 				convertView.setTag(holder);
+
 			}
 			holder = (ViewHolder) convertView.getTag();
 
@@ -150,40 +191,46 @@ public class CityWatchListFragment extends SherlockFragment implements
 			comment = holder.getComment();
 			comment.setText(rowData.getDescription());
 
-			// rowData.get
+            Location lastKnown = ((CityWatch) getSherlockActivity()).getLastKnown();
+            Location itemLocation = new Location(getSherlockActivity().getClass().getCanonicalName());
+            itemLocation.setLatitude(rowData.getLatitude());
+            itemLocation.setLongitude(rowData.getLongitude());
+            double distanceInKm = lastKnown.distanceTo(itemLocation) / 1000;
 
-			// pic = holder.getPic();
+            DecimalFormat myFormatter = new DecimalFormat("#,###.#");
+            String output = myFormatter.format(distanceInKm) + " km";
 
-			// name.setText(rowData.get());
+            distance = holder.getDistance();
+            distance.setText(output);
 
-			// address = holder.getAddress();
-			// address.setText(rowData.getAddress());
+            time = holder.getTime();
+            String formattedTime = (((ArrayMap<String,Object>) rowData.get("_kmd")).get("ect").toString());
+            formattedTime = formattedTime.replace("Z", "+00:00");
+            try {
+                formattedTime = new SimpleDateFormat().format(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
+                        .parse(formattedTime));
+            } catch (ParseException ex) {
+                formattedTime = "";
+            } catch(Exception ex) {
+                Log.e(TAG,"Exception",ex);
+            }
 
-			// category = holder.getCategory();
-			// category.setText(rowData.getCategory());
-
-			// comment = holder.getComment();
-			// comment.setText(rowData.getDescription());
-			// distance = holder.getDistance();
-			// distance.setText(rowData.getCoords().toString());
-			//
-			// time = holder.getTime();
-			// time.setText(rowData.get)
+            time.setText(formattedTime);
 
 			return convertView;
 		}
 
 		/**
 		 * This pattern is used as an optimization for Android ListViews.
-		 * 
+		 *
 		 * Since every row uses the same layout, the View object itself can be
 		 * recycled, only the data/content of the row has to be updated.
-		 * 
+		 *
 		 * This allows for Android to only inflate enough Row Views to fit on
 		 * screen, and then they are recycled. This allows us to avoid creating
 		 * a new view for every single row, which can have a bad effect on
 		 * performance (especially with large lists on large screen devices).
-		 * 
+		 *
 		 */
 		private class ViewHolder {
 			private View mRow;
@@ -202,6 +249,7 @@ public class CityWatchListFragment extends SherlockFragment implements
 				if (null == pic) {
 					pic = (ImageView) mRow.findViewById(R.id.list_image);
 				}
+
 				return pic;
 			}
 
@@ -209,6 +257,7 @@ public class CityWatchListFragment extends SherlockFragment implements
 				if (null == address) {
 					address = (TextView) mRow.findViewById(R.id.list_address);
 				}
+                address.setTypeface(robotoThin);
 				return address;
 			}
 
@@ -216,6 +265,7 @@ public class CityWatchListFragment extends SherlockFragment implements
 				if (null == name) {
 					name = (TextView) mRow.findViewById(R.id.list_name);
 				}
+                name.setTypeface(robotoThin);
 				return name;
 			}
 
@@ -223,6 +273,7 @@ public class CityWatchListFragment extends SherlockFragment implements
 				if (null == comment) {
 					comment = (TextView) mRow.findViewById(R.id.list_comment);
 				}
+                comment.setTypeface(robotoThin);
 				return comment;
 			}
 
@@ -230,6 +281,7 @@ public class CityWatchListFragment extends SherlockFragment implements
 				if (null == distance) {
 					distance = (TextView) mRow.findViewById(R.id.list_distance);
 				}
+                distance.setTypeface(robotoThin);
 				return distance;
 			}
 
@@ -237,6 +289,7 @@ public class CityWatchListFragment extends SherlockFragment implements
 				if (null == time) {
 					time = (TextView) mRow.findViewById(R.id.list_time);
 				}
+                time.setTypeface(robotoThin);
 				return time;
 			}
 
