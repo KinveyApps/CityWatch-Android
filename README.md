@@ -10,6 +10,7 @@ The sample repository requires the Kinvey Android Library and Fracebook SDK that
 
 * [Download Kinvey Android Library](http://devcenter.kinvey.com/android/downloads)
 * [Download Facebook SDK](http://developers.facebook.com/android/downloads/)
+* [Download Action Bar Sherlock](http://actionbarsherlock.com/)
 
 ### Set-up the Backend
 1. Create your City App on Facebook.
