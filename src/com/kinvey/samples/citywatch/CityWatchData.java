@@ -16,9 +16,8 @@ package com.kinvey.samples.citywatch;
 public class CityWatchData {
 
 	public enum Category {
-		FIRE("Fire"), Flood("Flood"), EMERGENCY("Emergency"), HEALTH("Health"), INFRASTRUCTURE(
-				"Infrastructure"), OBSTRUCTION("Obstruction"), OTHER("Other"), WEATHER(
-				"Weather"), WILDLIFE("Wildlife");
+		FIRE("Fire"), Flood("Flood"), EMERGENCY("Emergency"), HEALTH("Health"), INFRASTRUCTURE("Infrastructure"), OBSTRUCTION("Obstruction"), OTHER(
+				"Other"), WEATHER("Weather"), WILDLIFE("Wildlife");
 
 		private String displayName;
 
@@ -60,4 +59,3 @@ public class CityWatchData {
 	}
 
 }
-

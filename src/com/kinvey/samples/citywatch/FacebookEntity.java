@@ -21,26 +21,26 @@ import com.google.api.client.util.Key;
  * @since 2.0
  */
 public class FacebookEntity extends GenericJson {
-    @Key
-    public String entityId;                // Required
-    @Key("_id")
-    public String objectType;            // Required
-    // Getters and Setters
+	@Key
+	public String entityId; // Required
+	@Key("_id")
+	public String objectType; // Required
 
+	// Getters and Setters
 
-    public String getEntityId() {
-        return entityId;
-    }
+	public String getEntityId() {
+		return entityId;
+	}
 
-    public void setEntityId(String entityId) {
-        this.entityId = entityId;
-    }
+	public void setEntityId(String entityId) {
+		this.entityId = entityId;
+	}
 
-    public String getObjectType() {
-        return objectType;
-    }
+	public String getObjectType() {
+		return objectType;
+	}
 
-    public void setObjectType(String objectType) {
-        this.objectType = objectType;
-    }
+	public void setObjectType(String objectType) {
+		this.objectType = objectType;
+	}
 }

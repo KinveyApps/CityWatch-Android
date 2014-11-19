@@ -45,75 +45,58 @@ import com.kinvey.java.Query;
 import com.kinvey.java.query.MongoQueryFilter;
 
 /**
-* @author mjsalinger
-* @since 2.0
-*/
-public class CityWatchMapFragment extends SherlockFragment implements
-        GoogleMap.OnMapClickListener, GoogleMap.OnInfoWindowClickListener {
+ * @author mjsalinger
+ * @since 2.0
+ */
+public class CityWatchMapFragment extends SherlockFragment implements GoogleMap.OnMapClickListener, GoogleMap.OnInfoWindowClickListener {
 
 	// reference the View object which renders the map itself
 	private MapView mMap = null;
-    // reference to the currently selected map marker
-    private Marker mCurMarker = null;
+	// reference to the currently selected map marker
+	private Marker mCurMarker = null;
 
 	private static final String TAG = CityWatchApplication.TAG;
 
-    private HashMap<String, CityWatchEntity> markerEntities;
+	private HashMap<String, CityWatchEntity> markerEntities;
 
-    private Client kinveyClient;
+	private Client kinveyClient;
 
-
-    @Override
+	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
 	}
 
 	@Override
-	public View onCreateView(LayoutInflater inflater, ViewGroup group,
-			Bundle saved) {
+	public View onCreateView(LayoutInflater inflater, ViewGroup group, Bundle saved) {
 		View v = inflater.inflate(R.layout.fragment_map, group, false);
-        setHasOptionsMenu(true);
-        kinveyClient = ((CityWatchApplication) getSherlockActivity().getApplication()).getClient();
+		setHasOptionsMenu(true);
+		kinveyClient = ((CityWatchApplication) getSherlockActivity().getApplication()).getClient();
 
 		// ensure the current device can even support running google services,
 		// which are required for using google maps.
-		int googAvailable = GooglePlayServicesUtil
-				.isGooglePlayServicesAvailable(getSherlockActivity());
+		int googAvailable = GooglePlayServicesUtil.isGooglePlayServicesAvailable(getSherlockActivity());
 		if (googAvailable != ConnectionResult.SUCCESS) {
 			Log.i(TAG, "googAvailable fail!");
-			GooglePlayServicesUtil.getErrorDialog(googAvailable,
-					getSherlockActivity(), 0).show();
+			GooglePlayServicesUtil.getErrorDialog(googAvailable, getSherlockActivity(), 0).show();
 		} else {
 
-            try {
-                MapsInitializer.initialize(getActivity());
-            } catch (GooglePlayServicesNotAvailableException e) {
-                e.printStackTrace();
-            }
+			MapsInitializer.initialize(getActivity());
 
 			bindViews(v);
 			mMap.onCreate(saved);
 			mMap.getMap().setMyLocationEnabled(true);
-            mMap.getMap().animateCamera(CameraUpdateFactory.newLatLngZoom(convertLocationToLatLng(((CityWatch) getSherlockActivity()).getLastKnown()), 15));
+			mMap.getMap().animateCamera(
+					CameraUpdateFactory.newLatLngZoom(convertLocationToLatLng(((CityWatch) getSherlockActivity()).getLastKnown()), 15));
 
-			// setListeners();
-
-            kinveyClient = ((CityWatchApplication) getSherlockActivity().getApplication()).getClient();
-
-
-
+			kinveyClient = ((CityWatchApplication) getSherlockActivity().getApplication()).getClient();
 		}
 
 		return v;
 	}
 
-
-
 	private void bindViews(View v) {
-	    mMap = (MapView) v.findViewById(R.id.map_main);
-
-
+		mMap = (MapView) v.findViewById(R.id.map_main);
 	}
 
 	/**
@@ -141,8 +124,8 @@ public class CityWatchMapFragment extends SherlockFragment implements
 		if (mMap != null) {
 			mMap.onResume();
 		}
-        mMap.getMap().setOnInfoWindowClickListener(this);
-        populateMap();
+		mMap.getMap().setOnInfoWindowClickListener(this);
+		populateMap();
 	}
 
 	@Override
@@ -157,122 +140,72 @@ public class CityWatchMapFragment extends SherlockFragment implements
 		return new CityWatchMapFragment();
 	}
 
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.fragment_main, menu);
-    }
+	@Override
+	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+		inflater.inflate(R.menu.fragment_main, menu);
+	}
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.menu_item_new:
-                ((CityWatch) getSherlockActivity()).showEditDetailsFragment();
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
-        }
-    }
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+		case R.id.menu_item_new:
+			((CityWatch) getSherlockActivity()).showEditDetailsFragment();
+			return true;
+		default:
+			return super.onOptionsItemSelected(item);
+		}
+	}
 
-    // listen for clicks on the map, clearing the current marker (if there is
-    // one)
-    // and setting a new marker, showing the default info window for adding a
-    // note.
-    @Override
-    public void onMapClick(LatLng latlng) {
-        if (mCurMarker != null && mCurMarker.isVisible()) {
-            mCurMarker.remove();
-        }
-        mCurMarker = mMap.getMap().addMarker(
-                new MarkerOptions()
-                        .position(latlng)
-                        .title(getResources()
-                                .getString(R.string.marker_default))
-                        .draggable(true));
-        mCurMarker.showInfoWindow();
+	// listen for clicks on the map, clearing the current marker (if there is
+	// one)
+	// and setting a new marker, showing the default info window for adding a
+	// note.
+	@Override
+	public void onMapClick(LatLng latlng) {
+		if (mCurMarker != null && mCurMarker.isVisible()) {
+			mCurMarker.remove();
+		}
+		mCurMarker = mMap.getMap().addMarker(
+				new MarkerOptions().position(latlng).title(getResources().getString(R.string.marker_default)).draggable(true));
+		mCurMarker.showInfoWindow();
 
-    }
+	}
 
-    // listen for clicks on the info window, lazily instantiating the
-    // "edit marker" dialog
-    @Override
-    public void onInfoWindowClick(final Marker mark) {
-            ((CityWatch) getSherlockActivity()).setCurEntity(markerEntities.get(mark.getId()));
-            ((CityWatch) getSherlockActivity()).showViewDetailsFragment();
-    }
+	// listen for clicks on the info window, lazily instantiating the
+	// "edit marker" dialog
+	@Override
+	public void onInfoWindowClick(final Marker mark) {
+		((CityWatch) getSherlockActivity()).setCurEntity(markerEntities.get(mark.getId()));
+		((CityWatch) getSherlockActivity()).showViewDetailsFragment();
+	}
 
+	public void populateMap() {
+		markerEntities = new HashMap<String, CityWatchEntity>();
 
-    public void populateMap() {
-        markerEntities = new HashMap<String, CityWatchEntity>();
+		List<CityWatchEntity> nearbyEntities = ((CityWatch) getSherlockActivity()).getNearbyEntities();
 
-        List<CityWatchEntity> nearbyEntities = ((CityWatch) getSherlockActivity()).getNearbyEntities();
+		for (CityWatchEntity entity : nearbyEntities) {
+			Marker curMarker = mMap.getMap().addMarker(
+					new MarkerOptions().position(convertDoublesToLatLng(entity.getLatitude(), entity.getLongitude())).title(entity.getTitle())
+							.draggable(false));
+			markerEntities.put(curMarker.getId(), entity);
+			curMarker.showInfoWindow();
+		}
+	}
 
-        for (CityWatchEntity entity : nearbyEntities) {
-            Marker curMarker = mMap.getMap()
-                    .addMarker(
-                            new MarkerOptions()
-                                    .position(
-                                            convertDoublesToLatLng(entity.getLatitude(), entity.getLongitude()))
-                                    .title(entity.getTitle())
-                                    .draggable(false));
-            markerEntities.put(curMarker.getId(), entity);
-            curMarker.showInfoWindow();
-        }
-         /*
-        // first get world coordinates that are being drawn on screen
-        LatLng topleft = mMap.getMap().getProjection().getVisibleRegion().farLeft;
-        LatLng btmRight = mMap.getMap().getProjection().getVisibleRegion().nearRight;
-        // now that we have a bounding box of what's on screen, use a
-        // SimpleQuery to query Kinvey's backend `withinBox`
-        Query geoquery = new Query(new MongoQueryFilter.MongoQueryFilterBuilder());
+	public static Location convertDoublesToLocation(double lat, double lng) {
+		Location loc = new Location(TAG);
+		loc.setLatitude(lat);
+		loc.setLongitude(lng);
+		return loc;
+	}
 
-        geoquery.withinBox("_geoloc", topleft.latitude, topleft.longitude, btmRight.latitude, btmRight.longitude);
+	public static LatLng convertLocationToLatLng(Location loc) {
+		return new LatLng(loc.getLatitude(), loc.getLongitude());
+	}
 
-        kinveyClient.appData("CityWatch", CityWatchEntity.class).get(geoquery, new KinveyListCallback<CityWatchEntity>() {
-            @Override
-            public void onSuccess(CityWatchEntity[] result) {
-                List<CityWatchEntity> resultList = Arrays.asList(result);
-                String msg = "query Sucessful, with a size of -> " + resultList.size();
-                Log.i(TAG, msg);
-                for (CityWatchEntity entity : resultList) {
-
-                    Marker curMarker = mMap.getMap()
-                            .addMarker(
-                                    new MarkerOptions()
-                                            .position(
-                                                    convertDoublesToLatLng(entity.getLatitude(), entity.getLongitude()))
-                                            .title(entity.getTitle())
-                                            .draggable(false));
-                    markerEntities.put(curMarker.getId(), entity);
-                    curMarker.showInfoWindow();
-                }
-            }
-
-            @Override
-            public void onFailure(Throwable error) {
-                String msg = "kinvey query fetch failed, " + error.getMessage();
-                Toast.makeText(getSherlockActivity(), msg, Toast.LENGTH_LONG)
-                        .show();
-                Log.e(TAG, msg, error);
-            }
-        });             */
-
-
-    }
-
-    public static Location convertDoublesToLocation(double lat, double lng) {
-        Location loc = new Location(TAG);
-        loc.setLatitude(lat);
-        loc.setLongitude(lng);
-        return loc;
-    }
-
-    public static LatLng convertLocationToLatLng(Location loc) {
-        return new LatLng(loc.getLatitude(), loc.getLongitude());
-    }
-
-    public static LatLng convertDoublesToLatLng(double lat, double lng) {
-        return new LatLng(lat, lng);
-    }
+	public static LatLng convertDoublesToLatLng(double lat, double lng) {
+		return new LatLng(lat, lng);
+	}
 
 }
-

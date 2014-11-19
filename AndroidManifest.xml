@@ -49,10 +49,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-                android:name=".CityWatchDetailsActivity"
-                android:label="Details" >
-        </activity>
+
 
         <meta-data
                 android:name="com.google.android.maps.v2.API_KEY"
